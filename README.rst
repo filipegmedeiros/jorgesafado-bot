@@ -17,7 +17,6 @@ Table of contents
 =================
 
 - `Introduction`_
-
 - `Contributing`_
 
 ============
