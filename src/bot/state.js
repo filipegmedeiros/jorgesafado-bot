@@ -1,6 +1,7 @@
 const fs = require('fs')
 
-const contentFilePath = '/home/filipe/JorgeSafado_BOT/src/bot/content.json'
+const contentFilePath = './src/bot/content.json'
+
 
 function save(content) {
     const contentString = JSON.stringify(content)
