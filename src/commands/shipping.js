@@ -1,32 +1,45 @@
-const howManyLeftToNewShipping = (firstDate) => {
-    TodayIs = new Date()
+const moment = require('moment');
+moment.locale('pt')
 
-    return firstDate
-}
+const state = require('../bot/state.js')
 
 
-const shipping = (people, lastShippingDate) => {
+function command() {
     
-        lastShippingDate = new Date()
+    const content = state.load();
+    verifyHourOfShipping(content.lastShippingDate);
+    chooseCouple(content);
+    state.save(content);
 
-        var firstPair = people[Math.floor(Math.random()*people.length)];
-        var secondPair = people[Math.floor(Math.random()*people.length)];
-        
-        while (secondPair == firstPair) { 
-            secondPair = people[Math.floor(Math.random()*people.length)];
-        }
+
+    function verifyHourOfShipping (lastShippingDate ){
+        return Math.round(new Date().getTime()/1000) - lastShippingDate >= 86400;
+    }
+
+    function chooseCouple(content){
+        if (verifyHourOfShipping(content.lastShippingDate)){
+            firstPair = content.people[Math.floor(Math.random()*content.people.length)];
+            secondPair = content.people[Math.floor(Math.random()*content.people.length)];
             
-        return "Casal do dia foi escolhido: " + firstPair + " + " + secondPair + 
-        "\n" + "Novo casal do dia pode ser escolhido em " 
-        + howManyLeftToNewShipping(lastShippingDate).getHours() + " Horas " + 
-        + howManyLeftToNewShipping(lastShippingDate).getMinutes() + " Minutos "
+            while (secondPair == firstPair) { 
+                secondPair = content.people[Math.floor(Math.random()*content.people.length)];
+            }
 
+            content.lastShippingCouple = firstPair + " + " + secondPair;
+            content.nextTimeToChoose = moment().add(1, 'days').calendar();
+            content.lastShippingDate = Math.round(new Date().getTime()/1000);
+            
+            return "Casal do dia foi escolhido: " + content.lastShippingCouple + 
+            "\n" + "Novo casal do dia pode ser escolhido " + content.nextTimeToChoose;
+        }
 
+        else{
+            return "Ainda não pode ser escolher ainda! o anterior foi " + content.lastShippingCouple + 
+            "\n" + "Próximo casal pode ser escolhido " + content.nextTimeToChoose;
+        }
+    }
 }
 
 
-function ship(){
-    console.log(shipping(['@usuario1', '@usuario2', '@usuario3']))
-}
-
-module.exports = ship
+command()
+module.exports = command
