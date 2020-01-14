@@ -1,0 +1,13 @@
+{
+    "people": [
+        "@usuario1",
+        "@usuario2",
+        "@usuario3",
+        "@usuario4",
+        "@usuario5",
+        "@usuario6"
+    ],
+    "lastShippingCouple": "@usuario4 + @usuario1",
+    "nextTimeToChoose": "Amanhã às 13:51",
+    "lastShippingDate": 1579020699
+}

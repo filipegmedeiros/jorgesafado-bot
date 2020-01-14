@@ -1,0 +1,16 @@
+{
+  "name": "jorgesafado_bot",
+  "version": "1.0.0",
+  "description": ".. image:: https://raw.githubusercontent.com/filipegmedeiros/jorgesafado-bot/master/logos/long-logo.png       :align: center    :target: https://t.me/jorgesafado-bot    :alt: pjorgesafado-bot Logo",
+  "main": "index.js",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
