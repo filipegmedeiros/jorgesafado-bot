@@ -1,13 +1,32 @@
 {
     "people": [
-        "@usuario1",
-        "@usuario2",
-        "@usuario3",
-        "@usuario4",
-        "@usuario5",
-        "@usuario6"
+        {
+            "username": "@usuario1",
+            "score": 0
+        },
+        {
+            "username": "@usuario2",
+            "score": 0
+        },
+        {
+            "username": "@usuario3",
+            "score": 0
+        },
+        {
+            "username": "@usuario4",
+            "score": 0
+        },
+        {
+            "username": "@usuario5",
+            "score": 0
+        },
+        {
+            "username": "@usuario6",
+            "score": 0
+        }
     ],
     "lastShippingCouple": "",
     "nextTimeToChoose": "",
-    "lastShippingDate": 0
+    "lastShippingDate": 0,
+    "rank": ""
 }
