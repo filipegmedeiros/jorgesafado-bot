@@ -9,14 +9,12 @@ async function matchShip() {
 
     lastCouple = await shippings.findOne({ id: 0 });
 
-    lastShippingDate = await lastCouple.lastShippingDate;
-
-        lastShippingDate = 0;
-    if (lastShippingDate === 0) {
-        timeToNextShip = new Date((now() + 86400) * 1000).toLocaleString("pt-BR", {timeZone: "America/Recife"})
+    if (lastCouple.lastShippingDate === 0) {
+        timeToNextShip = new Date((now() + 86400) * 1000).toLocaleString("pt-BR", { timeZone: "America/Recife" })
     } else {
-        timeToNextShip = new Date((lastShippingDate + 86400) * 1000).toLocaleString("pt-BR", {timeZone: "America/Brasilia"})
+        timeToNextShip = new Date((await lastCouple.lastShippingDate + 86400) * 1000).toLocaleString("pt-BR", { timeZone: "America/Recife" })
     };
+
 
     function now() { return Math.round(new Date().getTime() / 1000) };
 
@@ -32,7 +30,7 @@ async function matchShip() {
         return Math.round(new Date().getTime() / 1000) - lastShippingDate >= 86400;
     }
 
-    if (verifyHourOfShipping(lastShippingDate)) {
+    if (verifyHourOfShipping(await lastCouple.lastShippingDate)) {
         size = await people.countDocuments();
 
         firstPair = await people.findOne({ id: random(size) });
@@ -61,14 +59,14 @@ async function matchShip() {
             });
 
         return "Casal do dia foi escolhido: " + firstPair.username + " + " + secondPair.username
-            + "\n" + "Novo casal do dia pode ser escolhido Amanhã às"
-            + timeToNextShip.getHours() + ":" + timeToNextShip.getMinutes();
+            + "\n" + "Novo casal do dia pode ser escolhido em"
+            + timeToNextShip
     }
 
     else {
         return "Ainda não pode ser escolher ainda! o anterior foi " + lastCouple.lastShippingCouple
-            + "\n" + "Novo casal do dia pode ser escolhido Amanhã às "
-            + timeToNextShip.getHours() + ":" + timeToNextShip.getMinutes();
+            + "\n" + "Novo casal do dia pode ser escolhido em "
+            + timeToNextShip
     }
 
 }
