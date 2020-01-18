@@ -1,0 +1,26 @@
+{
+    "name": "jorgesafado-bot",
+    "version": 2,
+    "builds": [
+        {
+            "src": "index.js",
+            "use": "@now/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/",
+            "dest": "index.js"
+        },
+        {
+            "src": "/.*",
+            "dest": "index.js"
+        }
+    ],
+    "env": {
+        "BOT_TOKEN": "@bot_token",
+        "DB_URI": "@db_uri",
+        "DB_NAME": "@db_name",
+        "ROUTE": "@route"
+    }   
+}
