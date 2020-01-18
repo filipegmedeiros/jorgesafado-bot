@@ -21,6 +21,8 @@
         "BOT_TOKEN": "@bot_token",
         "DB_URI": "@db_uri",
         "DB_NAME": "@db_name",
-        "ROUTE": "@route"
+        "ROUTE": "@route",
+        "USER_LIST_01": "@user_list_01",
+        "USER_LIST_02": "@user_list_02"
     }   
 }
