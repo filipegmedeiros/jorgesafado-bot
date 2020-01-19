@@ -1,6 +1,7 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const api_url = 'https://api.telegram.org/bot' + process.env.BOT_TOKEN;
+
+const axios = require('axios');
 
 const app = express();
 app.use(express.json());
@@ -9,38 +10,52 @@ const shipping = require("./commands/shipping.js");
 const safadometro = require("./commands/safadometro.js");
 const everyone = require("./commands/everyone.js");
 const question = require("./commands/questions.js");
+const love = require("./commands/love.js");
 
-// Send message to a given ID
 const sendMessage = async (id, data, parse) => {
-  return await fetch(api_url + '/sendMessage', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(
-      { chat_id: id, text: data, parse_mode: (parse) ? 'Markdown' : '' })
-  })
-    .then(res => res.json());
+  const body = {
+    chat_id: id,
+    text: data,
+    parse_mode: (parse) ? 'Markdown' : ''
+  }
+  await axios.post(api_url + '/sendMessage', body)
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 };
 
 const sendMessageAndPine = async (id, data, parse) => {
-  return await fetch(api_url + '/sendMessage', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(
-      { chat_id: id, text: data, parse_mode: (parse) ? 'Markdown' : '' })
-  })
-    .then(res => { pineMessage(id, res.json().message_id)} );
+  const body = {
+    chat_id: id,
+    text: data,
+    parse_mode: (parse) ? 'Markdown' : ''
+  }
+  const result = await axios.post(api_url + '/sendMessage', body)
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  await pineMessage(id, result.data.result.message_id);
 };
 
 const pineMessage = async (id, msg_id) => {
-  return await fetch(api_url + '/pinChatMessage', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: id,
-      message_id: msg_id,
+
+  const body = {
+    chat_id: id,
+    message_id: msg_id
+  }
+  await axios.post(api_url + '/pinChatMessage', body)
+    .then(function (response) {
+      console.log(response);
     })
-  })
-    .then(res => res.json());
+    .catch(function (error) {
+      console.log(error);
+    });
 };
 
 app.get('/', (req, res) => { res.send('Hello World!') });
@@ -70,61 +85,51 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
     return;
   }
 
-  if (text == '/everyone' || text == '/everyone@jorgesafadobot') {
-    await sendMessageAndPine(parseInt(chat.id), everyone.all());
+  if (text.startsWith('/')) {
+    const command = text.match(/(\/\w+)(@\w+)?/)[1].substring(1);
+
+    switch (command) {
+
+
+      case 'lol': await sendMessage(parseInt(chat.id), everyone.lol()); break;
+      case 'safadometro': await sendMessage(parseInt(chat.id), safadometro.percent(from.first_name)); break;
+      case 'help': await sendMessage(parseInt(chat.id), "Ainda não temos um help feito"); break;
+      case 'howilove': await sendMessage(parseInt(chat.id), love.theTruth(from.username)); break;
+      case 'question': await sendMessage(parseInt(chat.id), await question.randomQuestion()); break;
+      case 'shipping': {
+        if (chat.type == 'supergroup') {
+          await sendMessageAndPine(parseInt(chat.id), await shipping.matchShip());
+        } else {
+          await sendMessage(parseInt(chat.id), "Apenas Ships nos grupos, amigo!");
+        }
+        break;
+      }
+      case 'everyone': {
+        if (chat.type == 'supergroup') {
+          await sendMessageAndPine(parseInt(chat.id), await everyone.all());
+
+        } else {
+          await sendMessage(parseInt(chat.id), "Você não está sozinho, o bot está com você!");
+        }
+        break;
+      }
+      case 'add': {
+        text = text.replace(/\/\w+(@\w+)?(\s+)?/, '');
+        await sendMessage(parseInt(chat.id), question.addQuestion(text));
+        break;
+      }
+      default: {
+        res.status(200).send('Ok');
+        return;
+      }
+    }
     res.status(200).send('Ok');
     return;
   }
-
-  if (text == '/lol' || text == '/lol@jorgesafadobot') {
-    await sendMessage(parseInt(chat.id), everyone.lol());
-    res.status(200).send('Ok');
-    return;
-  }
-
-
-  if (text.startsWith('/add')){
-    text = text.replace(/\/\w+(@\w+)?(\s+)?/, '');
-    await sendMessage(parseInt(chat.id), await question.addQuestion(text));
-    res.status(200).send('Ok');
-    return;
-  }
-
-  if (text == '/question' ){
-    await sendMessage(parseInt(chat.id), await question.randomQuestion());
-    res.status(200).send('Ok');
-    return;
-  }
-
-
-  if (text == '/safadometro' || text == '/safadometro@jorgesafadobot') {
-    await sendMessage(parseInt(chat.id), safadometro.percent(from.first_name));
-    res.status(200).send('Ok');
-    return;
-  }
-
-  if (text == '/top' || text == '/top@jorgesafadobot') {
-    await sendMessage(parseInt(chat.id), "Ainda Vou Construir isso :(");
-    res.status(200).send('Ok');
-    return;
-  }
-
-  if (text == '/shipping' || text == '/shipping@jorgesafadobot') {
-    await sendMessageAndPine(parseInt(chat.id), await shipping.matchShip());
-    res.status(200).send('Ok');
-    return;
-  }
-
-
-  if (text == '/help' || text == '/help@jorgesafadobot') {
-    await sendMessage(parseInt(chat.id), "Ainda não temos um help feito");
-    res.status(200).send('Ok');
-    return;
-  }
-
   // ignore
   res.status(200).send('Ok');
   return;
 });
+
 
 module.exports = app;
