@@ -33,29 +33,17 @@ const sendMessageAndPine = async (id, data, parse) => {
     text: data,
     parse_mode: (parse) ? 'Markdown' : ''
   }
-  const result = await axios.post(api_url + '/sendMessage', body)
-    .then(function (response) {
-      console.log(response);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+  const result = await axios.post(api_url + '/sendMessage', body);
+
   await pineMessage(id, result.data.result.message_id);
 };
 
 const pineMessage = async (id, msg_id) => {
-
   const body = {
     chat_id: id,
     message_id: msg_id
   }
-  await axios.post(api_url + '/pinChatMessage', body)
-    .then(function (response) {
-      console.log(response);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+  await axios.post(api_url + '/pinChatMessage', body);
 };
 
 app.get('/', (req, res) => { res.send('Hello World!') });
@@ -99,19 +87,20 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
       case 'shipping': {
         if (chat.type == 'supergroup') {
           await sendMessageAndPine(parseInt(chat.id), await shipping.matchShip());
+          break;
         } else {
           await sendMessage(parseInt(chat.id), "Apenas Ships nos grupos, amigo!");
+          break;
         }
-        break;
       }
       case 'everyone': {
         if (chat.type == 'supergroup') {
-          await sendMessageAndPine(parseInt(chat.id), await everyone.all());
-
+          await sendMessageAndPine(parseInt(chat.id), everyone.all());
+          break;
         } else {
           await sendMessage(parseInt(chat.id), "Você não está sozinho, o bot está com você!");
+          break;
         }
-        break;
       }
       case 'add': {
         text = text.replace(/\/\w+(@\w+)?(\s+)?/, '');
