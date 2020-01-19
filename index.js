@@ -8,6 +8,7 @@ app.use(express.json());
 const shipping = require("./commands/shipping.js");
 const safadometro = require("./commands/safadometro.js");
 const everyone = require("./commands/everyone.js");
+const question = require("./commands/questions.js");
 
 // Send message to a given ID
 const sendMessage = async (id, data, parse) => {
@@ -27,16 +28,16 @@ const sendMessageAndPine = async (id, data, parse) => {
     body: JSON.stringify(
       { chat_id: id, text: data, parse_mode: (parse) ? 'Markdown' : '' })
   })
-  .then(res => pineMessage(id, res.json().message_id));
+    .then(res => { pineMessage(id, res.json().message_id)} );
 };
 
-const pineMessage = async (id, messade_id) => {
+const pineMessage = async (id, msg_id) => {
   return await fetch(api_url + '/pinChatMessage', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: id,
-      message_id: messade_id,
+      message_id: msg_id,
     })
   })
     .then(res => res.json());
@@ -80,6 +81,21 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
     res.status(200).send('Ok');
     return;
   }
+
+
+  if (text.startsWith('/add')){
+    text = text.replace(/\/\w+(@\w+)?(\s+)?/, '');
+    await sendMessage(parseInt(chat.id), await question.addQuestion(text));
+    res.status(200).send('Ok');
+    return;
+  }
+
+  if (text == '/question' ){
+    await sendMessage(parseInt(chat.id), await question.randomQuestion());
+    res.status(200).send('Ok');
+    return;
+  }
+
 
   if (text == '/safadometro' || text == '/safadometro@jorgesafadobot') {
     await sendMessage(parseInt(chat.id), safadometro.percent(from.first_name));
