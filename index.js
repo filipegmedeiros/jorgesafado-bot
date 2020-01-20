@@ -35,7 +35,13 @@ const sendMessageAndPine = async (id, data, parse) => {
   }
   const result = await axios.post(api_url + '/sendMessage', body);
 
-  await pineMessage(id, result.data.result.message_id);
+  await pineMessage(id, result.data.result.message_id)
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 };
 
 const pineMessage = async (id, msg_id) => {
@@ -43,8 +49,15 @@ const pineMessage = async (id, msg_id) => {
     chat_id: id,
     message_id: msg_id
   }
-  await axios.post(api_url + '/pinChatMessage', body);
+  await axios.post(api_url + '/pinChatMessage', body)
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 };
+
 
 app.get('/', (req, res) => { res.send('Hello World!') });
 
@@ -73,12 +86,14 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
     return;
   }
 
-  if (text.startsWith('/')) {
+  if (!text.match('^\/[a-z]')) {
+    res.status(200).send('Ok');
+    return;
+  }
+
+  if (text.match('^\/[a-z]')) {
     const command = text.match(/(\/\w+)(@\w+)?/)[1].substring(1);
-
     switch (command) {
-
-
       case 'lol': await sendMessage(parseInt(chat.id), everyone.lol()); break;
       case 'safadometro': await sendMessage(parseInt(chat.id), safadometro.percent(from.first_name)); break;
       case 'help': await sendMessage(parseInt(chat.id), "Ainda não temos um help feito"); break;
@@ -104,7 +119,11 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
       }
       case 'add': {
         text = text.replace(/\/\w+(@\w+)?(\s+)?/, '');
-        await sendMessage(parseInt(chat.id), question.addQuestion(text));
+        if (text.match(/^[a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ]{4}[A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]*[?!]{1,}$/)) {
+          await sendMessage(parseInt(chat.id), await question.addQuestion(text));
+        } else {
+          await sendMessage(parseInt(chat.id), "Vá cagar outro banco safado!");
+        }
         break;
       }
       default: {
