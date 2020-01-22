@@ -23,7 +23,7 @@ async function shippingDb() {
     return await db.collection('shipping');
 }
 
-async function AskDb() {
+async function questionDb() {
     const db = await connectToDB();
     return await db.collection('questions');
 }
@@ -31,5 +31,5 @@ async function AskDb() {
 module.exports = {
     peopleDb,
     shippingDb,
-    AskDb
+    questionDb
 }
