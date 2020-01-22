@@ -12,11 +12,11 @@ const everyone = require("./commands/everyone.js");
 const question = require("./commands/questions.js");
 const love = require("./commands/love.js");
 
-const sendMessage = async (id, data, parse) => {
+const sendMessage = async (id, data) => {
   const body = {
     chat_id: id,
     text: data,
-    parse_mode: (parse) ? 'Markdown' : ''
+    parse_mode: 'Markdown'
   }
   await axios.post(api_url + '/sendMessage', body)
     .then(function (response) {
@@ -27,11 +27,28 @@ const sendMessage = async (id, data, parse) => {
     });
 };
 
-const sendMessageAndPine = async (id, data, parse) => {
+const sendReplyMessage = async (id, data,reply_to) => {
   const body = {
     chat_id: id,
     text: data,
-    parse_mode: (parse) ? 'Markdown' : ''
+    reply_to_message_id: reply_to,
+    parse_mode: 'Markdown'
+  }
+  
+  await axios.post(api_url + '/sendMessage', body)
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+};
+
+const sendMessageAndPine = async (id, data) => {
+  const body = {
+    chat_id: id,
+    text: data,
+    parse_mode: 'Markdown'
   }
   const result = await axios.post(api_url + '/sendMessage', body);
 
@@ -71,34 +88,49 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
   const { message } = req.body;
 
   console.log(message);
-
   if (!message) {
     res.status(200).send('Ok');
     return;
   }
 
-  let parse = true;
   let { text } = message;
   const { chat, from, message_id } = message;
+  const { reply_to_message } = message;
+
+
+
+
 
   if (!text) {
     res.status(200).send('Ok');
     return;
   }
 
-  if (!text.match('^\/[a-z]')) {
+  if (reply_to_message && reply_to_message.from.username == 'jorgesafadobot' &&
+    reply_to_message.text.startsWith('Question') && !text.startsWith('reveal')) {
+    
+      await question.responseQuestion(reply_to_message.text, text, from.username);
     res.status(200).send('Ok');
     return;
   }
+
+  if (reply_to_message && reply_to_message.from.username == 'jorgesafadobot' &&
+  reply_to_message.text.startsWith('Question') && text.startsWith('reveal')) {
+
+    await sendMessage(parseInt(chat.id), await question.whatIsTheAnswer(reply_to_message.text));
+    res.status(200).send('Ok');
+    return;
+  }
+
 
   if (text.match('^\/[a-z]')) {
     const command = text.match(/(\/\w+)(@\w+)?/)[1].substring(1);
     switch (command) {
       case 'lol': await sendMessage(parseInt(chat.id), everyone.lol()); break;
-      case 'safadometro': await sendMessage(parseInt(chat.id), safadometro.percent(from.first_name)); break;
+      case 'safadometro': await sendReplyMessage(parseInt(chat.id), safadometro.percent(from.first_name), parseInt(message_id)); break;
       case 'help': await sendMessage(parseInt(chat.id), "Ainda não temos um help feito"); break;
-      case 'howilove': await sendMessage(parseInt(chat.id), love.theTruth(from.username)); break;
-      case 'question': await sendMessage(parseInt(chat.id), await question.randomQuestion()); break;
+      case 'howilove': await sendReplyMessage(parseInt(chat.id), love.theTruth(from.username), parseInt(message_id)); break;
+      case 'question': await sendReplyMessage(parseInt(chat.id), await question.randomQuestion(), parseInt(message_id)); break;
       case 'shipping': {
         if (chat.type == 'supergroup') {
           await sendMessageAndPine(parseInt(chat.id), await shipping.matchShip());
@@ -119,10 +151,10 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
       }
       case 'add': {
         text = text.replace(/\/\w+(@\w+)?(\s+)?/, '');
-        if (text.match(/^[a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ]{4}[A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]*[?!]{1,}$/)) {
-          await sendMessage(parseInt(chat.id), await question.addQuestion(text));
+        if (text.match(/^[a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ]{1,}[A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ, ]*[?!]{1,}$/)) {
+          await sendReplyMessage(parseInt(chat.id), await question.addQuestion(text, from.username), parseInt(message_id));
         } else {
-          await sendMessage(parseInt(chat.id), "Vá cagar outro banco safado!");
+          await sendReplyMessage(parseInt(chat.id), "Vá cagar outro banco safado!", parseInt(message_id));
         }
         break;
       }
