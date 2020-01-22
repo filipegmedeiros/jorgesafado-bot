@@ -130,7 +130,11 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
       case 'safadometro': await sendReplyMessage(parseInt(chat.id), safadometro.percent(from.first_name), parseInt(message_id)); break;
       case 'help': await sendMessage(parseInt(chat.id), "Ainda não temos um help feito"); break;
       case 'howilove': await sendReplyMessage(parseInt(chat.id), love.theTruth(from.username), parseInt(message_id)); break;
-      case 'question': await sendReplyMessage(parseInt(chat.id), await question.randomQuestion(), parseInt(message_id)); break;
+      case 'top': await sendMessageAndPine(parseInt(chat.id), await shipping.showTop()); break;
+      case 'question': {
+        await sendReplyMessage(parseInt(chat.id), await question.randomQuestion(), parseInt(message_id));
+        break;
+      }
       case 'shipping': {
         if (chat.type == 'supergroup') {
           await sendMessageAndPine(parseInt(chat.id), await shipping.matchShip());

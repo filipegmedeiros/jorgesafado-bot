@@ -64,9 +64,34 @@ async function matchShip() {
     }
 }
 
+async function showTop() {
+    const people = await state.peopleDb();
 
+    peopleArr = await people.find().toArray()
+
+    function mySort (arr){
+        arr.sort((a, b) => b.score - a.score);
+    }
+
+    function top(arr){
+        msg = "*Top Lovers* \n"
+
+        for (let i = 0; i < 10; i++) {
+            msg += (('*' + (i + 1) + ".* " + (element = arr[i].name) + " — " +
+                (element = arr[i].score) + "\n"));
+        }
+        return msg;
+    }
+
+    mySort(await peopleArr);
+    msg = top(await peopleArr);
+
+    return msg;
+
+}
 
 
 module.exports = {
-    matchShip
+    matchShip,
+    showTop
 }
