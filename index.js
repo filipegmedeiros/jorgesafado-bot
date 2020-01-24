@@ -27,14 +27,14 @@ const sendMessage = async (id, data) => {
     });
 };
 
-const sendReplyMessage = async (id, data,reply_to) => {
+const sendReplyMessage = async (id, data, reply_to) => {
   const body = {
     chat_id: id,
     text: data,
     reply_to_message_id: reply_to,
     parse_mode: 'Markdown'
   }
-  
+
   await axios.post(api_url + '/sendMessage', body)
     .then(function (response) {
       console.log(response);
@@ -108,14 +108,14 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
 
   if (reply_to_message && reply_to_message.from.username == 'jorgesafadobot' &&
     reply_to_message.text.startsWith('Question') && !text.startsWith('reveal')) {
-    
-      await question.responseQuestion(reply_to_message.text, text, from.username);
+
+    await question.responseQuestion(reply_to_message.text, text, from.username);
     res.status(200).send('Ok');
     return;
   }
 
   if (reply_to_message && reply_to_message.from.username == 'jorgesafadobot' &&
-  reply_to_message.text.startsWith('Question') && text.startsWith('reveal')) {
+    reply_to_message.text.startsWith('Question') && text.startsWith('reveal')) {
 
     await sendMessage(parseInt(chat.id), await question.whatIsTheAnswer(reply_to_message.text));
     res.status(200).send('Ok');
@@ -130,14 +130,21 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
       case 'safadometro': await sendReplyMessage(parseInt(chat.id), safadometro.percent(from.first_name), parseInt(message_id)); break;
       case 'help': await sendMessage(parseInt(chat.id), "Ainda não temos um help feito"); break;
       case 'howilove': await sendReplyMessage(parseInt(chat.id), love.theTruth(from.username), parseInt(message_id)); break;
-      case 'top': await sendMessageAndPine(parseInt(chat.id), await shipping.showTop()); break;
+      case 'top': await sendMessage(parseInt(chat.id), await shipping.showTop()); break;
       case 'question': {
         await sendReplyMessage(parseInt(chat.id), await question.randomQuestion(), parseInt(message_id));
         break;
       }
       case 'shipping': {
         if (chat.type == 'supergroup') {
-          await sendMessageAndPine(parseInt(chat.id), await shipping.matchShip());
+          //
+          response = await shipping.matchShip();
+          if (response[1] == true) {
+            await sendMessageAndPine(parseInt(chat.id), response[0]);
+          } else {
+            await sendMessage(parseInt(chat.id), response[0]);
+          }
+
           break;
         } else {
           await sendMessage(parseInt(chat.id), "Apenas Ships nos grupos, amigo!");
@@ -161,6 +168,10 @@ app.post('/' + process.env.ROUTE, async (req, res) => {
           await sendReplyMessage(parseInt(chat.id), "Vá cagar outro banco safado!", parseInt(message_id));
         }
         break;
+      }
+      case 'debug': {
+        if (from.username === 'usuariolinux' || from.username === '@usuariolinux')
+          await sendReplyMessage(parseInt(chat.id), JSON.parse(JSON.stringify(message)), parseInt(message_id));
       }
       default: {
         res.status(200).send('Ok');

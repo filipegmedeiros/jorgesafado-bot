@@ -1,12 +1,34 @@
 const state = require('../bot/state.js')
 
+const intervalToLevels = (interval) => {
+    const levels = {
+        scale: [24, 60, 60, 1],
+        units: [' dia ', ' horas ', ' minutos ', ' segundos ']
+    };
+
+    const cbFun = (d, c) => {
+        let bb = d[1] % c[0],
+            aa = (d[1] - bb) / c[0];
+        aa = aa > 0 ? aa + c[1] : '';
+
+        return [d[0] + aa, bb];
+    };
+
+    let rslt = levels.scale.map((d, i, a) => a.slice(i).reduce((d, c) => d * c))
+        .map((d, i) => ([d, levels.units[i]]))
+        .reduce(cbFun, ['', interval]);
+    return rslt[0];
+};
+
 async function matchShip() {
 
     const shippings = await state.shippingDb();
     const people = await state.peopleDb();
 
     const lastCouple = await shippings.findOne({ id: 0 });
-    const timeToNextShip = new Date((await lastCouple.shippingDate + 86400) * 1000).toLocaleString("pt-BR", { timeZone: "America/Recife" })
+    const shippingDate = await lastCouple.shippingDate;
+    const timeToNextShip = new Date(shippingDate + 86400)
+    const fullDateToNextShip = new Date((shippingDate + 86400) * 1000).toLocaleString("pt-BR", { timeZone: "America/Recife" })
 
     const verifyTime = lastShippingDate => {
         return Math.round(new Date().getTime() / 1000) - lastShippingDate >= 86400;
@@ -52,14 +74,17 @@ async function matchShip() {
                 $set: { 'score': secondPair.score + 1 }
             });
 
-
-        return "Casal do dia foi escolhido: " + firstPair.username + " + " + secondPair.username
-            + " ❤️ \n" + "Novo casal do dia pode ser escolhido em " + timeToNextShip
+        const [response, bool] = ["Casal do dia:\n" + firstPair.username + " + " + secondPair.username
+            + " ❤️ \n" + "\nNovo casal do dia pode ser escolhido em " 
+            + intervalToLevels(timeToNextShip - now()) + ' (*' + fullDateToNextShip + ')*', true]
+        return [response, bool];
 
     } else {
 
-        return "Ainda não pode ser escolher ainda! o anterior foi " + lastCouple.shippingCouple
-            + " ❤️ \n" + "Novo casal do dia pode ser escolhido em " + timeToNextShip
+        const [response, bool] = ["Ainda não pode ser escolher ainda! o anterior foi " + lastCouple.shippingCouple
+            + " ❤️ \n" + "\nNovo casal do dia pode ser escolhido em " 
+            + intervalToLevels(timeToNextShip - now()) + ' (*' + fullDateToNextShip + ')*', false] 
+        return [response, bool];
 
     }
 }
@@ -69,11 +94,11 @@ async function showTop() {
 
     peopleArr = await people.find().toArray()
 
-    function mySort (arr){
+    function mySort(arr) {
         arr.sort((a, b) => b.score - a.score);
     }
 
-    function top(arr){
+    function top(arr) {
         msg = "*Top Lovers* \n"
 
         for (let i = 0; i < 10; i++) {
